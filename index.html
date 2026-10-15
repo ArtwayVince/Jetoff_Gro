@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>JET OFF — Onboarding + Full Pilot v1.1</title>
+  <style>
+    :root {
+      --primary: #0f172a; --accent: #f59e0b; --bg: #0f172a; --card: #1e293b;
+      --text: #f8fafc; --muted: #94a3b8; --success: #22c55e; --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #020617; color: var(--text);
+      display: flex; justify-content: center; min-height: 100vh; padding: 10px 5px;
+    }
+    .phone {
+      width: 100%; max-width: 390px; background: var(--bg); border-radius: 28px;
+      overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);
+      border: 1px solid #1e293b; min-height: 920px; position: relative;
+    }
+    .status-bar {
+      background: #020617; color: #94a3b8; font-size: 11px;
+      padding: 8px 18px 4px; display: flex; justify-content: space-between;
+    }
+    /* ONBOARDING */
+    .onboard {
+      position: absolute; inset: 0; background: #0f172a; z-index: 50;
+      display: flex; flex-direction: column; padding: 24px 20px; overflow-y: auto;
+    }
+    .onboard.hidden { display: none; }
+    .onboard-hero {
+      text-align: center; padding: 30px 10px 20px;
+    }
+    .onboard-icon { font-size: 56px; margin-bottom: 12px; }
+    .onboard-title {
+      font-size: 28px; font-weight: 900; letter-spacing: 2px;
+      background: linear-gradient(90deg, #fbbf24, #f59e0b);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .onboard-sub { font-size: 14px; color: #fcd34d; margin-top: 6px; }
+    .onboard-card {
+      background: #1e293b; border: 1px solid #334155; border-radius: 14px;
+      padding: 16px; margin-bottom: 12px;
+    }
+    .onboard-card h3 { font-size: 14px; color: var(--accent); margin-bottom: 6px; }
+    .onboard-card p { font-size: 13px; color: #cbd5e1; line-height: 1.5; }
+    .onboard-btn {
+      margin-top: auto; background: var(--accent); color: #0f172a;
+      border: none; border-radius: 12px; padding: 16px; font-size: 16px;
+      font-weight: 800; cursor: pointer; width: 100%;
+    }
+    /* PLAYER HEADER */
+    .player-header {
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      padding: 11px 14px 12px; border-bottom: 1px solid var(--border);
+    }
+    .player-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; border: 2px solid #fbbf24; flex-shrink: 0;
+      transition: transform 0.3s;
+    }
+    .avatar.pulse { animation: avatarPulse 0.45s ease; }
+    @keyframes avatarPulse {
+      0% { transform: scale(1); } 50% { transform: scale(1.12); } 100% { transform: scale(1); }
+    }
+    .player-info { flex: 1; }
+    .player-name { font-size: 14px; font-weight: 700; }
+    .player-title { font-size: 10px; color: var(--accent); }
+    .level-badge {
+      background: var(--accent); color: #0f172a;
+      font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 20px;
+      transition: transform 0.3s;
+    }
+    .level-badge.levelup { animation: levelPop 0.7s ease; }
+    @keyframes levelPop {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.35); background: #22c55e; }
+      100% { transform: scale(1); }
+    }
+    .xp-row { display: flex; align-items: center; gap: 7px; font-size: 10px; color: var(--muted); }
+    .xp-bar { flex: 1; height: 9px; background: #334155; border-radius: 5px; overflow: hidden; }
+    .xp-fill {
+      height: 100%; background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+      border-radius: 5px; transition: width 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .currency { display: flex; gap: 8px; margin-top: 7px; font-size: 11px; }
+    .currency span {
+      background: #1e293b; border: 1px solid var(--border);
+      padding: 3px 9px; border-radius: 20px; color: var(--accent); font-weight: 600;
+    }
+    .nav-tabs { display: flex; background: #0f172a; border-bottom: 1px solid var(--border); }
+    .nav-tabs button {
+      flex: 1; padding: 9px 1px; border: none; background: none;
+      font-size: 9px; font-weight: 600; color: var(--muted); cursor: pointer;
+      border-bottom: 3px solid transparent;
+    }
+    .nav-tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .screen { display: none; padding: 12px; min-height: 560px; }
+    .screen.active { display: block; animation: fadeIn 0.22s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+    .card {
+      background: var(--card); border-radius: 13px; padding: 13px;
+      margin-bottom: 10px; border: 1px solid var(--border);
+    }
+    .card h3 { font-size: 13px; margin-bottom: 5px; }
+    .card p { font-size: 11px; color: var(--muted); line-height: 1.4; }
+    .btn {
+      display: block; width: 100%; padding: 12px; border: none; border-radius: 10px;
+      font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; margin-top: 9px;
+    }
+    .btn-primary { background: var(--accent); color: #0f172a; }
+    .btn-secondary { background: #334155; color: white; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .tag {
+      display: inline-block; font-size: 9px; font-weight: 700;
+      padding: 2px 7px; border-radius: 5px; margin: 1px 3px 1px 0;
+    }
+    .tag-xp { background: #0c4a6e; color: #38bdf8; }
+    .tag-gold { background: #78350f; color: #fbbf24; }
+    .tag-quest { background: #3b0764; color: #c084fc; }
+    .tag-done { background: #166534; color: #86efac; }
+    .objective {
+      display: flex; align-items: flex-start; gap: 9px;
+      padding: 10px 9px; border-radius: 11px; margin-bottom: 6px;
+      background: #0f172a; border: 1px solid #334155; cursor: pointer;
+    }
+    .objective.done { border-color: #22c55e; background: #052e16; }
+    .obj-check {
+      width: 22px; height: 22px; border-radius: 50%; border: 2px solid #475569;
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px;
+    }
+    .objective.done .obj-check { background: var(--success); border-color: var(--success); color: white; }
+    .obj-text { flex: 1; font-size: 12px; font-weight: 500; }
+    .obj-xp { font-size: 10px; color: #38bdf8; margin-top: 2px; }
+    .reward-box {
+      background: linear-gradient(135deg, #422006, #78350f);
+      border: 1px solid #f59e0b; border-radius: 9px; padding: 9px; margin-top: 8px; font-size: 11px;
+    }
+    .progress-mini { height: 6px; background: #334155; border-radius: 3px; overflow: hidden; margin: 6px 0 3px; }
+    .progress-mini-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.5s ease; }
+    .mission-num {
+      background: var(--accent); color: #0f172a; font-size: 11px; font-weight: 800;
+      width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    }
+    .toast {
+      position: absolute; top: 65px; left: 50%; transform: translateX(-50%) scale(0.85);
+      background: linear-gradient(135deg, #166534, #15803d); color: white;
+      padding: 10px 18px; border-radius: 35px; font-size: 13px; font-weight: 800;
+      z-index: 100; opacity: 0; pointer-events: none;
+      box-shadow: 0 6px 25px rgba(22, 163, 74, 0.45);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) scale(1); }
+    .toast.levelup {
+      background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; font-size: 15px;
+    }
+    .footer-note { text-align: center; font-size: 9px; color: #64748b; padding: 10px 12px 18px; }
+    .locked { opacity: 0.5; pointer-events: none; }
+    .stat-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0; border-bottom: 1px solid #334155; font-size: 12px;
+    }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-label { color: var(--muted); }
+    .stat-value { font-weight: 700; }
+    .stat-bar { height: 5px; background: #334155; border-radius: 3px; margin-top: 3px; overflow: hidden; }
+    .stat-fill { height: 100%; border-radius: 3px; transition: width 0.55s ease; }
+    .option-card {
+      background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 11px; margin-bottom: 8px;
+    }
+    .share-zone {
+      border: 2px dashed #22c55e; border-radius: 12px; padding: 12px; text-align: center; margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <!-- ONBOARDING OVERLAY -->
+    <div class="onboard" id="onboard">
+      <div class="onboard-hero">
+        <div class="onboard-icon">🛩️</div>
+        <div class="onboard-title">JET OFF</div>
+        <div class="onboard-sub">Turn aspiration into real experience</div>
+      </div>
+
+      <div class="onboard-card">
+        <h3>1. Start where you are</h3>
+        <p>No contribution is too small. We stand with you and still prepare you for the road.</p>
+      </div>
+      <div class="onboard-card">
+        <h3>2. Play → Prepare → Act</h3>
+        <p>Complete missions in the game. Learn etiquette, routes and what to expect. Then take real steps in life.</p>
+      </div>
+      <div class="onboard-card">
+        <h3>3. Grow into the person who belongs</h3>
+        <p>Your stats (Mindset, Presence, Discipline, Network) rise with every real effort. The private jet is the symbol. You are the prize.</p>
+      </div>
+
+      <button class="onboard-btn" onclick="startGame()">Begin Your Journey</button>
+    </div>
+
+    <div class="status-bar">
+      <span>9:41</span>
+      <span>JET OFF</span>
+      <span>100%</span>
+    </div>
+
+    <div class="player-header">
+      <div class="player-row">
+        <div class="avatar" id="avatar">👔</div>
+        <div class="player-info">
+          <div class="player-name">Vincent</div>
+          <div class="player-title" id="playerTitle">Aspiring Jet Setter</div>
+        </div>
+        <div class="level-badge" id="levelBadge">LVL 2</div>
+      </div>
+      <div class="xp-row">
+        <span>XP</span>
+        <div class="xp-bar"><div class="xp-fill" id="xpFill" style="width:42%"></div></div>
+        <span id="xpText">420 / 1000</span>
+      </div>
+      <div class="currency">
+        <span id="naira">₦ 100,000</span>
+        <span>🔥 3-day streak</span>
+      </div>
+    </div>
+
+    <div class="nav-tabs">
+      <button class="active" onclick="showScreen('home')">Home</button>
+      <button onclick="showScreen('missions')">Missions</button>
+      <button onclick="showScreen('character')">Character</button>
+      <button onclick="showScreen('jetoff')">Jet Off</button>
+      <button onclick="showScreen('progress')">Progress</button>
+    </div>
+
+    <!-- HOME -->
+    <div id="home" class="screen active">
+      <div class="card" style="border-color:#f59e0b;">
+        <h3>🎯 Current Quest</h3>
+        <p id="currentQuestText">Complete <strong>Mission 1 – The Aspiration</strong></p>
+        <div class="progress-mini"><div class="progress-mini-fill" id="questProgress" style="width:0%"></div></div>
+        <div style="font-size:10px; color:var(--muted);" id="questCount">0 of 3 objectives done</div>
+        <button class="btn btn-primary" onclick="showScreen('missions')">Go to Missions →</button>
+      </div>
+      <div class="card">
+        <h3>Daily Challenge</h3>
+        <p>Make one small real-life move today.</p>
+        <div style="margin-top:5px;">
+          <span class="tag tag-xp">+50 XP</span>
+          <span class="tag tag-gold">+₦2,000</span>
+        </div>
+        <button class="btn btn-secondary" id="dailyBtn" onclick="completeDaily()">I completed it</button>
+      </div>
+    </div>
+
+    <!-- MISSIONS -->
+    <div id="missions" class="screen">
+      <div class="card" id="mission1">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <div style="display:flex; align-items:center; gap:7px;">
+            <div class="mission-num">1</div>
+            <div>
+              <h3 style="margin:0;">The Aspiration</h3>
+              <div style="font-size:9px; color:var(--muted);">Level 1</div>
+            </div>
+          </div>
+          <span class="tag tag-quest" id="m1Status">ACTIVE</span>
+        </div>
+        <div>
+          <div class="objective" data-xp="40" data-stat="mindset" data-statval="8" onclick="completeObjective(this,1)">
+            <div class="obj-check"></div>
+            <div><div class="obj-text">Set your personal Jet Off goal</div><div class="obj-xp">+40 XP • +8 Mindset</div></div>
+          </div>
+          <div class="objective" data-xp="50" data-stat="discipline" data-statval="10" onclick="completeObjective(this,1)">
+            <div class="obj-check"></div>
+            <div><div class="obj-text">Make one real-life commitment</div><div class="obj-xp">+50 XP • +10 Discipline</div></div>
+          </div>
+          <div class="objective" data-xp="60" data-stat="presence" data-statval="6" onclick="completeObjective(this,1)">
+            <div class="obj-check"></div>
+            <div><div class="obj-text">Claim your first reward</div><div class="obj-xp">+60 XP • +6 Presence</div></div>
+          </div>
+        </div>
+        <div class="reward-box">+150 XP • +₦5,000 • Badge: First Step</div>
+        <button class="btn btn-primary" id="claimBtn1" disabled onclick="claimMission(1)">Claim Mission 1</button>
+      </div>
+
+      <div class="card locked" id="mission2">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <div style="display:flex; align-items:center; gap:7px;">
+            <div class="mission-num" id="m2Num" style="background:#475569;">2</div>
+            <div>
+              <h3 style="margin:0;">Know Before You Go</h3>
+              <div style="font-size:9px; color:var(--muted);" id="m2Sub">Locked</div>
+            </div>
+          </div>
+          <span class="tag tag-quest" id="m2Status" style="display:none;">ACTIVE</span>
+        </div>
+        <div>
+          <div class="objective" data-xp="45" data-stat="mindset" data-statval="7" onclick="completeObjective(this,2)">
+            <div class="obj-check"></div>
+            <div><div class="obj-text">Complete the virtual tour</div><div class="obj-xp">+45 XP • +7 Mindset</div></div>
+          </div>
+          <div class="objective" data-xp="40" data-stat="presence" data-statval="8" onclick="completeObjective(this,2)">
+            <div class="obj-check"></div>
+            <div><div class="obj-text">Study routes & arrival notes</div><div class="obj-xp">+40 XP • +8 Presence</div></div>
+          </div>
+          <div class="objective" data-xp="55" data-stat="presence" data-statval="10" onclick="completeObjective(this,2)">
+            <div class="obj-check"></div>
+            <div><div class="obj-text">Finish etiquette training</div><div class="obj-xp">+55 XP • +10 Presence</div></div>
+          </div>
+        </div>
+        <div class="reward-box">+140 XP • Etiquette Badge • Unlock Real Visit</div>
+        <button class="btn btn-primary" id="claimBtn2" disabled onclick="claimMission(2)">Claim Mission 2</button>
+      </div>
+
+      <div class="card locked" id="mission3">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <div style="display:flex; align-items:center; gap:7px;">
+            <div class="mission-num" id="m3Num" style="background:#475569;">3</div>
+            <div>
+              <h3 style="margin:0;">The Real Visit</h3>
+              <div style="font-size:9px; color:var(--muted);" id="m3Sub">Locked</div>
+            </div>
+          </div>
+          <span class="tag tag-quest" id="m3Status" style="display:none;">ACTIVE</span>
+        </div>
+        <p style="margin-bottom:8px;">Go in real life or complete the free alternative, then share your experience.</p>
+        <div class="option-card">
+          <strong style="font-size:12px;">Option A — Resort Day</strong>
+          <p style="margin-top:3px;">Book the real experience at the venue.</p>
+        </div>
+        <div class="option-card">
+          <strong style="font-size:12px;">Option B — Free Alternative</strong>
+          <p style="margin-top:3px;">Visit a public space, practise etiquette, and reflect. Effort still counts fully.</p>
+        </div>
+        <div>
+          <div class="objective" data-xp="70" data-stat="discipline" data-statval="12" onclick="completeObjective(this,3)">
+            <div class="obj-check"></div>
+            <div><div class="obj-text">Complete the real visit or alternative</div><div class="obj-xp">+70 XP • +12 Discipline</div></div>
+          </div>
+          <div class="objective" data-xp="50" data-stat="presence" data-statval="9" onclick="completeObjective(this,3)">
+            <div class="obj-check"></div>
+            <div><div class="obj-text">Share photos of your experience</div><div class="obj-xp">+50 XP • +9 Presence</div></div>
+          </div>
+          <div class="objective" data-xp="40" data-stat="mindset" data-statval="6" onclick="completeObjective(this,3)">
+            <div class="obj-check"></div>
+            <div><div class="obj-text">Write a short reflection</div><div class="obj-xp">+40 XP • +6 Mindset</div></div>
+          </div>
+        </div>
+        <div class="share-zone" id="shareZone" style="display:none;">📷 Photos added • Ready to claim</div>
+        <div class="reward-box">+160 XP • Real Experience Badge • <strong>Guaranteed Level-Up</strong></div>
+        <button class="btn btn-primary" id="claimBtn3" disabled onclick="claimMission(3)">Claim Mission 3 + Level Up</button>
+      </div>
+    </div>
+
+    <!-- CHARACTER -->
+    <div id="character" class="screen">
+      <div class="card" style="text-align:center; padding:16px;">
+        <div style="font-size:38px; margin-bottom:4px;">👔</div>
+        <div style="font-size:17px; font-weight:800;">Vincent</div>
+        <div style="font-size:12px; color:var(--accent);" id="charTitle">Aspiring Jet Setter</div>
+        <div style="display:inline-block; background:var(--accent); color:#0f172a; font-size:11px; font-weight:800; padding:3px 12px; border-radius:20px; margin-top:5px;" id="charLevel">LEVEL 2</div>
+      </div>
+      <div class="card">
+        <h3>Core Stats</h3>
+        <div class="stat-row"><span class="stat-label">Mindset</span><span class="stat-value" id="statMindset">42</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="barMindset" style="width:42%; background:#38bdf8;"></div></div>
+        <div class="stat-row"><span class="stat-label">Presence</span><span class="stat-value" id="statPresence">35</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="barPresence" style="width:35%; background:#a78bfa;"></div></div>
+        <div class="stat-row"><span class="stat-label">Discipline</span><span class="stat-value" id="statDiscipline">28</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="barDiscipline" style="width:28%; background:#34d399;"></div></div>
+        <div class="stat-row"><span class="stat-label">Network</span><span class="stat-value" id="statNetwork">15</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="barNetwork" style="width:15%; background:#f472b6;"></div></div>
+      </div>
+    </div>
+
+    <!-- JET OFF -->
+    <div id="jetoff" class="screen">
+      <div class="card" style="text-align:center; border-color:#f59e0b; padding:18px 12px;">
+        <div style="font-size:40px; margin-bottom:4px;">🛩️</div>
+        <div style="font-size:22px; font-weight:900; letter-spacing:1px; color:#fbbf24;">JET OFF</div>
+        <div style="font-size:11px; color:#fcd34d; margin:4px 0 8px;">Stage 10 — Ultimate Milestone</div>
+        <p style="color:#e2e8f0; font-size:12px;">The jet is the symbol. The transformed player is the real prize.</p>
+      </div>
+      <div class="card">
+        <h3>Your Path</h3>
+        <p>Stage 2 of 10 — Explorer</p>
+        <div class="progress-mini"><div class="progress-mini-fill" style="width:18%"></div></div>
+      </div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div id="progress" class="screen">
+      <div class="card">
+        <h3>Journey Progress</h3>
+        <p>Stage 2 of 10 — Explorer</p>
+        <div class="progress-mini"><div class="progress-mini-fill" style="width:18%"></div></div>
+      </div>
+      <div class="card">
+        <h3>Badges</h3>
+        <div id="badges">
+          <span class="tag" style="background:#1e293b; color:#94a3b8;">First Step</span>
+          <span class="tag tag-xp">3-Day Streak</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      JET OFF v1.1 — Onboarding + Full pilot loop + Guaranteed Level-Up
+    </div>
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script>
+    let xp = 420, level = 2, naira = 100000;
+    let stats = { mindset: 42, presence: 35, discipline: 28, network: 15 };
+    let m1Done = 0, m2Done = 0, m3Done = 0;
+    const maxXp = 1000;
+
+    function startGame() {
+      document.getElementById('onboard').classList.add('hidden');
+    }
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
+      const map = { home:0, missions:1, character:2, jetoff:3, progress:4 };
+      document.querySelectorAll('.nav-tabs button')[map[id]].classList.add('active');
+    }
+
+    function showToast(msg, isLevelUp = false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast' + (isLevelUp ? ' levelup show' : ' show');
+      setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    function updateStatsUI() {
+      ['Mindset','Presence','Discipline','Network'].forEach(s => {
+        const key = s.toLowerCase();
+        document.getElementById('stat'+s).textContent = stats[key];
+        document.getElementById('bar'+s).style.width = Math.min(100, stats[key]) + '%';
+      });
+    }
+
+    function updateUI() {
+      document.getElementById('xpFill').style.width = Math.min(100, (xp / maxXp) * 100) + '%';
+      document.getElementById('xpText').textContent = xp + ' / ' + maxXp;
+      document.getElementById('naira').textContent = '₦ ' + naira.toLocaleString();
+      document.getElementById('levelBadge').textContent = 'LVL ' + level;
+      document.getElementById('charLevel').textContent = 'LEVEL ' + level;
+      document.getElementById('questCount').textContent = m1Done + ' of 3 objectives done';
+      document.getElementById('questProgress').style.width = (m1Done / 3 * 100) + '%';
+      if (m1Done === 3) document.getElementById('claimBtn1').disabled = false;
+      if (m2Done === 3) document.getElementById('claimBtn2').disabled = false;
+      if (m3Done === 3) document.getElementById('claimBtn3').disabled = false;
+      updateStatsUI();
+    }
+
+    function forceLevelUp() {
+      level++;
+      xp = Math.min(xp, maxXp - 50);
+      showToast('LEVEL UP! → LVL ' + level, true);
+      document.getElementById('levelBadge').classList.add('levelup');
+      setTimeout(() => document.getElementById('levelBadge').classList.remove('levelup'), 800);
+      const title = level >= 3 ? 'Rising Jet Setter' : 'Aspiring Jet Setter';
+      document.getElementById('playerTitle').textContent = title;
+      document.getElementById('charTitle').textContent = title;
+    }
+
+    function completeObjective(el, mission) {
+      if (el.classList.contains('done')) return;
+      el.classList.add('done');
+      el.querySelector('.obj-check').textContent = '✓';
+      const gain = parseInt(el.dataset.xp);
+      const stat = el.dataset.stat;
+      const statVal = parseInt(el.dataset.statval) || 0;
+      xp += gain;
+      if (stat) stats[stat] += statVal;
+      if (mission === 1) m1Done++;
+      if (mission === 2) m2Done++;
+      if (mission === 3) {
+        m3Done++;
+        if (m3Done >= 2) document.getElementById('shareZone').style.display = 'block';
+      }
+      showToast('+' + gain + ' XP' + (stat ? ' • +' + statVal + ' ' + stat : ''));
+      document.getElementById('avatar').classList.add('pulse');
+      setTimeout(() => document.getElementById('avatar').classList.remove('pulse'), 450);
+      if (xp >= maxXp) {
+        xp -= maxXp;
+        forceLevelUp();
+      }
+      updateUI();
+    }
+
+    function claimMission(num) {
+      if (num === 1 && m1Done < 3) return;
+      if (num === 2 && m2Done < 3) return;
+      if (num === 3 && m3Done < 3) return;
+
+      if (num === 1) {
+        naira += 5000; stats.presence += 5; stats.network += 3;
+        document.getElementById('m1Status').textContent = 'DONE';
+        document.getElementById('m1Status').className = 'tag tag-done';
+        document.getElementById('claimBtn1').disabled = true;
+        document.getElementById('claimBtn1').textContent = 'Claimed ✓';
+        document.getElementById('mission2').classList.remove('locked');
+        document.getElementById('m2Num').style.background = '';
+        document.getElementById('m2Sub').textContent = 'Level 2 Quest';
+        document.getElementById('m2Status').style.display = 'inline-block';
+        document.getElementById('currentQuestText').innerHTML = 'Now: <strong>Mission 2 – Know Before You Go</strong>';
+        document.getElementById('badges').innerHTML = '<span class="tag tag-gold">First Step</span> <span class="tag tag-xp">3-Day Streak</span>';
+        showToast('Mission 1 Complete • Mission 2 Unlocked');
+      }
+      if (num === 2) {
+        naira += 3000; stats.presence += 8;
+        document.getElementById('m2Status').textContent = 'DONE';
+        document.getElementById('m2Status').className = 'tag tag-done';
+        document.getElementById('claimBtn2').disabled = true;
+        document.getElementById('claimBtn2').textContent = 'Claimed ✓';
+        document.getElementById('mission3').classList.remove('locked');
+        document.getElementById('m3Num').style.background = '';
+        document.getElementById('m3Sub').textContent = 'Level 3 Quest';
+        document.getElementById('m3Status').style.display = 'inline-block';
+        document.getElementById('currentQuestText').innerHTML = 'Now: <strong>Mission 3 – The Real Visit</strong>';
+        document.getElementById('badges').innerHTML = '<span class="tag tag-gold">First Step</span> <span class="tag tag-gold">Etiquette Ready</span> <span class="tag tag-xp">3-Day Streak</span>';
+        showToast('Mission 2 Complete • Real Visit Unlocked');
+      }
+      if (num === 3) {
+        naira += 8000; stats.discipline += 10; stats.presence += 8; stats.network += 5;
+        document.getElementById('m3Status').textContent = 'DONE';
+        document.getElementById('m3Status').className = 'tag tag-done';
+        document.getElementById('claimBtn3').disabled = true;
+        document.getElementById('claimBtn3').textContent = 'Claimed ✓';
+        document.getElementById('currentQuestText').innerHTML = '<strong>Pilot Loop Complete!</strong> You levelled up.';
+        document.getElementById('badges').innerHTML = '<span class="tag tag-gold">First Step</span> <span class="tag tag-gold">Etiquette Ready</span> <span class="tag tag-gold">Real Experience</span> <span class="tag tag-xp">3-Day Streak</span>';
+        forceLevelUp();
+        showToast('MISSION 3 COMPLETE • LEVEL UP!');
+      }
+      updateUI();
+    }
+
+    function completeDaily() {
+      xp += 50; naira += 2000; stats.discipline += 4;
+      showToast('+50 XP • +4 Discipline');
+      document.getElementById('dailyBtn').disabled = true;
+      document.getElementById('dailyBtn').textContent = 'Completed today ✓';
+      document.getElementById('avatar').classList.add('pulse');
+      setTimeout(() => document.getElementById('avatar').classList.remove('pulse'), 450);
+      if (xp >= maxXp) {
+        xp -= maxXp;
+        forceLevelUp();
+      }
+      updateUI();
+    }
+
+    updateUI();
+  </script>
+</body>
+</html>
